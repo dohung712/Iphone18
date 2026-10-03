@@ -3,13 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hệ Thống Điều Phối, So Sánh Biến Động & Cọc Đã Xuất PRO VIP v5.0</title>
+  <title>Hệ Thống Điều Phối & Biến Động Tồn Kho Realtime PRO VIP v6.0</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Firebase SDK v8 (Compat for Standalone HTML Web App) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
   <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -86,10 +90,11 @@
           <div class="flex items-center gap-2">
             <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
               <span>STOCK ALLOCATION</span>
-              <span class="bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full tracking-wider uppercase">PRO VIP v5</span>
+              <span class="bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full tracking-wider uppercase">PRO VIP v6 Cloud</span>
             </h1>
-            <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online
+            <span id="firebaseStatusBadge" class="text-[11px] text-amber-500 font-semibold flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/40" title="Trạng thái kết nối Firebase Cloud Realtime">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+              <span id="firebaseStatusText">Đang kết nối Cloud...</span>
             </span>
           </div>
           <p class="text-xs text-slate-500 dark:text-slate-400">Chọn chi tiết màu sắc, Siêu thị, Model & Truy vết tồn kho</p>
@@ -104,11 +109,16 @@
           <span id="themeText">Giao diện Sáng</span>
         </button>
 
-        <label for="excelFileInput" class="cursor-pointer inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-xs font-semibold px-3 py-2 rounded-xl transition shadow-sm">
-          <i data-lucide="upload-cloud" class="w-4 h-4 text-emerald-500"></i>
-          <span class="hidden sm:inline">Cập nhật File Thô</span>
+        <label for="excelFileInput" class="cursor-pointer inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-md shadow-emerald-600/20" title="Nạp file Excel mới và tự động phát sóng Realtime cho toàn bộ người dùng">
+          <i data-lucide="upload-cloud" class="w-4 h-4 text-white"></i>
+          <span class="hidden sm:inline">Nạp & Đồng Bộ Cloud</span>
         </label>
         <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelUpload(event)">
+
+        <button onclick="manualSyncToCloud()" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-xs font-semibold px-2.5 py-2 rounded-xl transition shadow-sm" title="Đẩy dữ liệu hiện tại lên Cloud làm mốc chung">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-indigo-500"></i>
+          <span class="hidden lg:inline">Phát Sóng Lên Mây</span>
+        </button>
 
         <button onclick="captureCurrentView()" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-lg shadow-indigo-600/25">
           <i data-lucide="camera" class="w-4 h-4"></i>
@@ -801,6 +811,7 @@
       populateColorDropdown();
       initApp();
       initSnapshots();
+      initFirebase();
       lucide.createIcons();
     });
 
@@ -1921,7 +1932,34 @@
 
           populateColorDropdown();
           initApp();
-          showToast(`Đã nạp file mới: ${file.name} (${allRecords.length} dòng)`);
+          showToast(`Đã nạp file mới: ${file.name} (${allRecords.length} dòng). Đang tự động phát sóng lên Cloud...`);
+
+          // ĐẨY TỰ ĐỘNG LÊN FIREBASE CHO TOÀN BỘ NGƯỜI DÙNG KHÁC CÙNG XEM
+          if (isCloudInitialized && stockRef) {
+            updateCloudBadge('SYNCING', 'Đang đồng bộ Cloud...');
+            const nowTimeStr = new Date().toLocaleString('vi-VN');
+            
+            // 1. Cập nhật mốc snapshot lên Cloud
+            if (savedSnapshots) {
+              snapshotsRef.set(savedSnapshots).catch(e => console.warn(e));
+            }
+
+            // 2. Cập nhật dữ liệu tồn kho trực tiếp lên Cloud
+            stockRef.set(allRecords).then(() => {
+              metaRef.set({
+                lastUpdated: nowTimeStr,
+                fileName: file.name,
+                totalRows: allRecords.length
+              });
+              updateCloudBadge('ONLINE', `Cloud Live (${allRecords.length} dòng)`);
+              showToast(`🚀 THÀNH CÔNG: Dữ liệu đã phát sóng lên Cloud! Mọi người dùng mở web đều thấy ngay.`);
+            }).catch(err => {
+              console.error("Lỗi push Firebase:", err);
+              alert("Lỗi đẩy lên Cloud: " + err.message + "\n(Kiểm tra lại Rules Realtime Database)");
+              updateCloudBadge('ERROR', 'Lỗi Cloud Rules');
+            });
+          }
+
         } catch (error) {
           console.error(error);
           alert('Lỗi nạp file Excel: ' + error.message);
