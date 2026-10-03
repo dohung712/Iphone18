@@ -12,6 +12,11 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <!-- Firebase SDKs (v8 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 
   <script>
     tailwind.config = {
@@ -107,30 +112,32 @@
         </button>
       </div>
 
-      <!-- Step 2: Nhập Email Trường (Dành riêng cho nhân sự VTB) -->
+      <!-- Step 2: Đăng Nhập Email Google Thật (Dành riêng cho nhân sự VTB) -->
       <div id="authStepEmail" class="space-y-4 hidden">
-        <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400">
-          <strong>Phân quyền VTB:</strong> Vui lòng nhập đúng email nhân sự/học viên dạng <strong>xxxxx@tb.edu.vn</strong> (X là các chữ số) để vào hệ thống.
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase mb-1.5">Email Xác Thực (xxxxx@tb.edu.vn)</label>
-          <div class="relative">
-            <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
-            <input type="text" id="authEmailInput" placeholder="Ví dụ: 18450@tb.edu.vn" autocomplete="off"
-              onkeydown="if(event.key === 'Enter') handleVerifyEmail()"
-              class="vip-input w-full text-sm font-semibold rounded-2xl pl-10 pr-4 py-2.5 border focus:outline-none focus:ring-2 focus:ring-amber-500">
+        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400 space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <i data-lucide="lock" class="w-4 h-4 text-amber-500"></i>
+            <span>XÁC THỰC DANH TÍNH GOOGLE</span>
           </div>
-          <p id="authEmailError" class="text-[11px] text-rose-500 font-bold mt-1.5 hidden"></p>
+          <p>Hệ thống yêu cầu đăng nhập trực tiếp bằng tài khoản Google trường có đuôi <strong>@tb.edu.vn</strong> để xác minh danh tính thực tế.</p>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="backToPassStep()" class="w-1/3 py-2.5 rounded-2xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition">
-            Quay lại
-          </button>
-          <button type="button" onclick="handleVerifyEmail()" class="w-2/3 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2">
-            <span>Vào Hệ Thống</span>
-            <i data-lucide="check" class="w-4 h-4"></i>
+        <!-- Nút Đăng Nhập Bằng Google Chính Thức -->
+        <button type="button" onclick="handleGoogleSignInReal()" id="btnGoogleSignIn" class="w-full py-3 px-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-300 dark:border-slate-700 shadow-md hover:shadow-lg transition flex items-center justify-center gap-3">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span id="googleSignInText">Đăng Nhập Tài Khoản Google (@tb.edu.vn)</span>
+        </button>
+
+        <p id="authEmailError" class="text-[11px] text-rose-500 font-bold text-center hidden"></p>
+
+        <div class="flex items-center justify-center pt-1">
+          <button type="button" onclick="backToPassStep()" class="text-xs text-slate-400 hover:text-slate-200 font-semibold underline">
+            &larr; Quay lại nhập mật mã khác
           </button>
         </div>
       </div>
@@ -922,6 +929,123 @@
     const AUTH_STORAGE_KEY = 'tgdd_tool_auth_session';
     let currentAuthSession = null;
     let logsRef = null;
+
+    // =============================================================
+    // CẤU HÌNH FIREBASE AUTH & REALTIME DATABASE CHÍNH THỨC
+    // =============================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEQf_GOMhC-6sQjupdhcstXNs3w_RH3KE",
+      authDomain: "theodoiiphone18.firebaseapp.com",
+      databaseURL: "https://theodoiiphone18-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "theodoiiphone18",
+      storageBucket: "theodoiiphone18.firebasestorage.app",
+      messagingSenderId: "464262873017",
+      appId: "1:464262873017:web:de934b375aca6afebac068",
+      measurementId: "G-E3V4P98MKG"
+    };
+
+    let isCloudInitialized = false;
+    let db = null;
+    let stockRef = null;
+    let snapshotsRef = null;
+    let metaRef = null;
+
+    function initFirebase() {
+      try {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.database();
+        stockRef = db.ref('active_stock_records');
+        snapshotsRef = db.ref('stock_snapshots');
+        metaRef = db.ref('stock_metadata');
+        logsRef = db.ref('user_access_logs');
+        isCloudInitialized = true;
+        updateCloudBadge('ONLINE', 'Cloud Live (Sẵn sàng)');
+      } catch (err) {
+        console.warn("Lỗi khởi tạo Firebase:", err);
+        updateCloudBadge('OFFLINE', 'Lỗi Cloud (Chế độ Local)');
+      }
+    }
+
+    function updateCloudBadge(status, text) {
+      const badge = document.getElementById('firebaseStatusBadge');
+      const label = document.getElementById('firebaseStatusText');
+      if (!badge || !label) return;
+
+      label.innerText = text;
+      if (status === 'ONLINE') {
+        badge.className = "text-[11px] text-emerald-500 font-semibold flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40";
+      } else if (status === 'SYNCING') {
+        badge.className = "text-[11px] text-indigo-500 font-semibold flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800/40";
+      } else {
+        badge.className = "text-[11px] text-rose-500 font-semibold flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800/40";
+      }
+    }
+
+    // ĐĂNG NHẬP BẰNG TÀI KHOẢN GOOGLE CHÍNH THỨC
+    function handleGoogleSignInReal() {
+      const errEl = document.getElementById('authEmailError');
+      const btnText = document.getElementById('googleSignInText');
+      if (errEl) errEl.classList.add('hidden');
+
+      if (!firebase.auth) {
+        if (errEl) {
+          errEl.innerText = 'Chưa nạp xong thư viện Authentication của Google!';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (btnText) btnText.innerText = 'Đang mở cửa sổ đăng nhập Google...';
+
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+
+      firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+          if (btnText) btnText.innerText = 'Đăng Nhập Tài Khoản Google (@tb.edu.vn)';
+          const user = result.user;
+          const userEmail = (user.email || '').trim().toLowerCase();
+          const displayName = user.displayName || userEmail;
+
+          // KIỂM TRA ĐỊNH DẠNG: BẮT BUỘC ĐUÔI @tb.edu.vn
+          if (!VTB_EMAIL_REGEX.test(userEmail)) {
+            firebase.auth().signOut();
+            if (errEl) {
+              errEl.innerHTML = `⛔ Từ chối: Email <strong>${userEmail}</strong> không thuộc tổ chức!<br>Bắt buộc phải đăng nhập bằng email Google có đuôi <strong>@tb.edu.vn</strong>`;
+              errEl.classList.remove('hidden');
+            }
+            return;
+          }
+
+          const session = {
+            role: 'VTB_USER',
+            email: userEmail,
+            name: displayName,
+            photoURL: user.photoURL || '',
+            uid: user.uid,
+            loginTime: new Date().toLocaleString('vi-VN')
+          };
+
+          grantAccess(session, true);
+        })
+        .catch((error) => {
+          if (btnText) btnText.innerText = 'Đăng Nhập Tài Khoản Google (@tb.edu.vn)';
+          console.error("Google Auth Error:", error);
+          if (errEl) {
+            if (error.code === 'auth/popup-closed-by-user') {
+              errEl.innerText = 'Bạn đã đóng cửa sổ đăng nhập Google.';
+            } else if (error.code === 'auth/unauthorized-domain') {
+              errEl.innerText = 'Tên miền chưa được cấp phép trong Firebase! Vui lòng thêm domain dohung712.github.io vào Authorized Domains trên Firebase Console.';
+            } else {
+              errEl.innerText = 'Lỗi xác thực: ' + error.message;
+            }
+            errEl.classList.remove('hidden');
+          }
+        });
+    }
+
 
     // Email pattern: xxxxx@tb.edu.vn (x là các số bất kỳ, vd: 12345@tb.edu.vn, 18450@tb.edu.vn)
     const VTB_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@tb\.edu\.vn$/i;
