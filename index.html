@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hệ Thống Điều Phối, So Sánh Biến Động & Cọc Đã Xuất PRO VIP v5.0</title>
+  <title>Hệ Thống Điều Phối, So Sánh Biến Động & Cọc Đã Xuất PRO VIP v5.1</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -406,7 +406,7 @@
 
     <!-- 3 TABS ĐIỀU HÀNH CHÍNH -->
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-      <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+      <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
         <button onclick="switchMode('STORE')" id="tabStoreMode" class="tab-active text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-white">
           <i data-lucide="store" class="w-4 h-4"></i>
           <span>1. Soi Siêu Thị (Model Thiếu & Dư)</span>
@@ -425,6 +425,14 @@
             <span>4. So Sánh & Cọc Đã Xuất</span>
             <span class="bg-amber-500 text-slate-950 text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase">Mới</span>
           </span>
+        </button>
+        <button onclick="switchMode('PROVINCE')" id="tabProvinceMode" class="text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+          <i data-lucide="map" class="w-4 h-4 text-sky-500"></i>
+          <span class="flex items-center gap-1.5"><span>5. Tổng Quan Theo Tỉnh</span><span class="bg-sky-500 text-slate-950 text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase">Mới</span></span>
+        </button>
+        <button onclick="switchMode('AUDIT')" id="tabAuditMode" class="text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+          <i data-lucide="database" class="w-4 h-4 text-emerald-500"></i>
+          <span class="flex items-center gap-1.5"><span>6. Check Data Đã Up</span><span class="bg-emerald-500 text-slate-950 text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase">Mới</span></span>
         </button>
       </div>
 
@@ -905,6 +913,129 @@
 
       </section>
 
+
+      <!-- ========================================================================= -->
+      <!-- CHẾ ĐỘ 5: TỔNG QUAN THEO TỈNH (DRILL-DOWN: TỈNH > SIÊU THỊ > MODEL)        -->
+      <!-- ========================================================================= -->
+      <section id="viewProvinceMode" class="space-y-5 hidden">
+        <div class="vip-card p-4 sm:p-5 rounded-2xl space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xs sm:text-sm font-extrabold text-sky-600 dark:text-sky-300 uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="map" class="w-4 h-4 text-sky-500"></i>
+                <span>TỔNG QUAN THEO TỈNH / THÀNH PHỐ (DRILL-DOWN)</span>
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Bấm vào Tỉnh để mở danh sách Siêu thị, bấm tiếp vào Siêu thị để xem từng Model: tồn kho, hàng đang về, lượng cọc. Luôn hiển thị đủ các tỉnh (bỏ qua ô lọc Tỉnh phía trên), vẫn tuân theo bộ lọc Series / Dung lượng / Màu.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                <input type="text" id="provSearch" oninput="renderProvinceView()" placeholder="Tìm tỉnh, siêu thị, model..." class="vip-input w-56 text-xs rounded-xl pl-9 pr-3 py-2 border focus:outline-none focus:ring-2 focus:ring-sky-500">
+              </div>
+              <select id="provSort" onchange="renderProvinceView()" class="vip-input text-xs font-semibold rounded-xl px-3 py-2 border focus:outline-none">
+                <option value="balance_asc">Sắp xếp: Thiếu hàng nhất trước</option>
+                <option value="available_desc">Sắp xếp: Hàng sẵn nhiều nhất</option>
+                <option value="total_desc">Sắp xếp: Tổng tồn nhiều nhất</option>
+                <option value="ordered_desc">Sắp xếp: Cọc nhiều nhất</option>
+                <option value="in_transit_desc">Sắp xếp: Đang về nhiều nhất</option>
+                <option value="name_asc">Sắp xếp: Tên A → Z</option>
+              </select>
+              <button onclick="provSetAll(true)" class="text-xs font-bold px-3 py-2 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-300 hover:bg-sky-500/20 transition">Mở tất cả tỉnh</button>
+              <button onclick="provSetAll(false)" class="text-xs font-bold px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Thu gọn</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="provKpiRow" class="grid grid-cols-2 md:grid-cols-6 gap-3"></div>
+
+        <div class="vip-card rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto max-h-[640px]">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="vip-table-head sticky top-0 z-10 uppercase text-[10px] font-bold border-b">
+                <tr>
+                  <th class="py-2.5 px-3">Tỉnh › Siêu thị › Model</th>
+                  <th class="py-2.5 px-2 text-center">Số ST</th>
+                  <th class="py-2.5 px-2 text-right">Tổng tồn</th>
+                  <th class="py-2.5 px-2 text-right text-emerald-600 dark:text-emerald-400">Hàng sẵn</th>
+                  <th class="py-2.5 px-2 text-right text-amber-600 dark:text-amber-400">Đang về</th>
+                  <th class="py-2.5 px-2 text-right text-purple-600 dark:text-purple-400">Lượng cọc</th>
+                  <th class="py-2.5 px-3 text-right font-black">Cân đối (Tồn − Cọc)</th>
+                </tr>
+              </thead>
+              <tbody id="provTableBody" class="font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- CHẾ ĐỘ 6: CHECK DATA ĐÃ UP (AUDIT DATA & TIMESTAMP)                        -->
+      <!-- ========================================================================= -->
+      <section id="viewAuditMode" class="space-y-5 hidden">
+        <div class="vip-card p-4 sm:p-5 rounded-2xl space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xs sm:text-sm font-extrabold text-emerald-600 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="database" class="w-4 h-4 text-emerald-500"></i>
+                <span>CHECK DATA ĐÃ UP (AUDIT DỮ LIỆU & MỐC THỜI GIAN)</span>
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Kiểm tra nguồn file đang nạp, thời điểm cập nhật, trạng thái Firebase Realtime và tra cứu toàn bộ bản ghi thô.</p>
+            </div>
+            <button onclick="refreshCloudMeta(true)" class="text-xs font-bold px-3 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-500/20 transition flex items-center gap-2">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i><span>Đồng bộ lại từ Cloud</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="auditCards" class="grid grid-cols-1 md:grid-cols-4 gap-3"></div>
+
+        <div class="vip-card p-4 sm:p-5 rounded-2xl space-y-3">
+          <h3 class="text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i><span>Kiểm tra chất lượng dữ liệu</span>
+          </h3>
+          <div id="auditQuality" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <div class="vip-card p-4 sm:p-5 rounded-2xl space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h3 class="text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="table-2" class="w-4 h-4 text-indigo-500"></i><span>Bản ghi dữ liệu thô (Raw Data Records)</span>
+              <span id="auditRawCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full badge-glow-blue">0</span>
+            </h3>
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="auditCityFilter" onchange="auditPage=1;renderAuditRaw()" class="vip-input text-xs rounded-xl px-3 py-2 border focus:outline-none"></select>
+              <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                <input type="text" id="auditSearch" oninput="auditPage=1;renderAuditRaw()" placeholder="Tìm siêu thị, mã SP, tên sản phẩm..." class="vip-input w-64 text-xs rounded-xl pl-9 pr-3 py-2 border focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              </div>
+              <button onclick="exportRawRecordsExcel()" class="text-xs font-bold px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
+                <i data-lucide="download" class="w-4 h-4"></i><span>Xuất Excel</span>
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto max-h-[560px]">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="vip-table-head sticky top-0 z-10 uppercase text-[10px] font-bold border-b">
+                <tr>
+                  <th class="py-2.5 px-3">#</th>
+                  <th class="py-2.5 px-3">Siêu thị</th>
+                  <th class="py-2.5 px-2">Tỉnh</th>
+                  <th class="py-2.5 px-2">Mã SP</th>
+                  <th class="py-2.5 px-3">Sản phẩm</th>
+                  <th class="py-2.5 px-2 text-right">Tổng</th>
+                  <th class="py-2.5 px-2 text-right">Sẵn</th>
+                  <th class="py-2.5 px-2 text-right">Đang về</th>
+                  <th class="py-2.5 px-2 text-right">Cọc</th>
+                  <th class="py-2.5 px-3 text-right">Có thể bán</th>
+                </tr>
+              </thead>
+              <tbody id="auditRawBody" class="font-medium"></tbody>
+            </table>
+          </div>
+          <div id="auditPager" class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400"></div>
+        </div>
+      </section>
+
     </div> <!-- END captureArea -->
 
   </main>
@@ -961,6 +1092,7 @@
         metaRef = db.ref('stock_metadata');
         logsRef = db.ref('user_access_logs');
         isCloudInitialized = true;
+        setupCloudWatchers();
         updateCloudBadge('ONLINE', 'Cloud Live (Sẵn sàng)');
       } catch (err) {
         console.warn("Lỗi khởi tạo Firebase:", err);
@@ -1492,16 +1624,22 @@
 
     function switchMode(mode) {
       currentMode = mode;
-      document.getElementById('tabStoreMode').className = mode === 'STORE' ? 'tab-active text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-white' : 'text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
-      document.getElementById('tabModelMode').className = mode === 'MODEL' ? 'tab-active text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-white' : 'text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
-      document.getElementById('tabOverviewMode').className = mode === 'OVERVIEW' ? 'tab-active text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-white' : 'text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
-      document.getElementById('tabCompareMode').className = mode === 'COMPARE' ? 'tab-active text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-white' : 'text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
-
-      document.getElementById('viewStoreMode').classList.toggle('hidden', mode !== 'STORE');
-      document.getElementById('viewModelMode').classList.toggle('hidden', mode !== 'MODEL');
-      document.getElementById('viewOverviewMode').classList.toggle('hidden', mode !== 'OVERVIEW');
-      document.getElementById('viewCompareMode').classList.toggle('hidden', mode !== 'COMPARE');
-
+      const TABS = {
+        STORE: ['tabStoreMode', 'viewStoreMode'],
+        MODEL: ['tabModelMode', 'viewModelMode'],
+        OVERVIEW: ['tabOverviewMode', 'viewOverviewMode'],
+        COMPARE: ['tabCompareMode', 'viewCompareMode'],
+        PROVINCE: ['tabProvinceMode', 'viewProvinceMode'],
+        AUDIT: ['tabAuditMode', 'viewAuditMode']
+      };
+      const ACTIVE_CLS = 'tab-active text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-white';
+      const INACTIVE_CLS = 'text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+      Object.keys(TABS).forEach(k => {
+        const btn = document.getElementById(TABS[k][0]);
+        const view = document.getElementById(TABS[k][1]);
+        if (btn) btn.className = (k === mode) ? ACTIVE_CLS : INACTIVE_CLS;
+        if (view) view.classList.toggle('hidden', k !== mode);
+      });
       renderCurrentMode();
       lucide.createIcons();
     }
@@ -1748,13 +1886,13 @@
       showToast('Đã đặt lại bộ lọc về mặc định: Đà Nẵng & iPhone 18 Pro Max');
     }
 
-    function getFilteredRecords() {
+    function getFilteredRecords(ignoreCity) {
       const city = document.getElementById('mainCityFilter').value;
       const series = document.getElementById('mainSeriesFilter').value;
       const capacity = document.getElementById('mainCapacityFilter').value;
 
       let list = allRecords;
-      if (city !== 'ALL') {
+      if (city !== 'ALL' && !ignoreCity) {
         list = list.filter(r => r.city === city);
       }
 
@@ -1802,6 +1940,10 @@
         renderOverviewView();
       } else if (currentMode === 'COMPARE') {
         renderCompareView();
+      } else if (currentMode === 'PROVINCE') {
+        renderProvinceView();
+      } else if (currentMode === 'AUDIT') {
+        renderAuditView();
       }
       lucide.createIcons();
     }
@@ -2580,6 +2722,8 @@
             };
           }).filter(r => r.store && r.product);
 
+          dataMeta = { source: 'EXCEL', fileName: file.name, loadedAt: new Date().toLocaleString('vi-VN') };
+          auditPage = 1;
           populateColorDropdown();
           initApp();
           showToast(`Đã nạp file mới: ${file.name} (${allRecords.length} dòng). Đang tự động phát sóng lên Cloud...`);
@@ -2588,6 +2732,9 @@
           if (isCloudInitialized && stockRef) {
             updateCloudBadge('SYNCING', 'Đang đồng bộ Cloud...');
             const nowTimeStr = new Date().toLocaleString('vi-VN');
+            const cloudVer = Date.now();
+            lastCloudKey = String(cloudVer);
+            dataMeta.source = 'EXCEL';
             
             // 1. Cập nhật mốc snapshot lên Cloud
             if (savedSnapshots) {
@@ -2597,6 +2744,7 @@
             // 2. Cập nhật dữ liệu tồn kho trực tiếp lên Cloud
             stockRef.set(allRecords).then(() => {
               metaRef.set({
+                version: cloudVer,
                 lastUpdated: nowTimeStr,
                 fileName: file.name,
                 totalRows: allRecords.length
@@ -3125,7 +3273,7 @@
       processQueryAndReply(query);
     }
 
-    function processQueryAndReply(rawQ) {
+    function legacyProcessQueryAndReply(rawQ) {
       const q = rawQ.toLowerCase();
 
       if (!allRecords || allRecords.length === 0) {
@@ -3274,6 +3422,528 @@
       appendChatMsg('BOT', 'Mình chưa tìm thấy thông tin phù hợp. Bạn hãy thử gõ rõ hơn như: <em>"18 pro max burgundy sẵn ở đâu"</em>, <em>"shop 351 có máy gì"</em>, hoặc <em>"hôm nay xuất bao nhiêu cọc"</em> nhé!');
     }
 
+
+    // =============================================================
+    // BỔ SUNG v5.1: TAB 5 (THEO TỈNH) + TAB 6 (CHECK DATA) + TRỢ LÝ 3 NHÓM x 10 CÂU HỎI
+    // =============================================================
+    const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const fmtN = n => Number(n || 0).toLocaleString('vi-VN');
+    const shortProd = p => String(p || '').replace(/^Điện thoại\s+/i, '');
+    function shortStore(s) {
+      const p = String(s || '').split(' - ');
+      return p.length >= 3 ? `${p[0]} · ${p.slice(2).join(' - ')}` : String(s || '');
+    }
+    function isTZScope() { return !!(currentAuthSession && currentAuthSession.role === 'TZ_USER'); }
+    function scopeFilter(list) { return isTZScope() ? list.filter(r => r.city === 'Đà Nẵng') : list; }
+    function getScopedAll() { return scopeFilter(allRecords || []); }
+
+    // Gom nhóm + cộng dồn các chỉ số tồn kho
+    function aggBy(list, keyFn) {
+      const m = new Map();
+      list.forEach(r => {
+        const k = keyFn(r);
+        let o = m.get(k);
+        if (!o) { o = { key: k, total: 0, available: 0, in_transit: 0, ordered: 0, saleable: 0, _stores: new Set(), color: r.color, city: r.city, rows: 0 }; m.set(k, o); }
+        o.total += r.total || 0; o.available += r.available || 0; o.in_transit += r.in_transit || 0;
+        o.ordered += r.ordered || 0; o.saleable += r.saleable || 0; o._stores.add(r.store); o.rows++;
+      });
+      return [...m.values()].map(o => { o.stores = o._stores.size; o.balance = o.total - o.ordered; delete o._stores; return o; });
+    }
+    function sortAgg(arr, sortKey) {
+      const a = arr.slice();
+      switch (sortKey) {
+        case 'available_desc': return a.sort((x, y) => y.available - x.available);
+        case 'total_desc': return a.sort((x, y) => y.total - x.total);
+        case 'ordered_desc': return a.sort((x, y) => y.ordered - x.ordered);
+        case 'in_transit_desc': return a.sort((x, y) => y.in_transit - x.in_transit);
+        case 'name_asc': return a.sort((x, y) => String(x.key).localeCompare(String(y.key), 'vi'));
+        default: return a.sort((x, y) => x.balance - y.balance);
+      }
+    }
+    const numTd = (v, cls = '') => `<td class="py-2 px-2 text-right tabular-nums ${v ? '' : 'text-slate-400'} ${cls}">${fmtN(v)}</td>`;
+    const balTd = v => `<td class="py-2 px-3 text-right tabular-nums font-black ${v < 0 ? 'text-rose-500' : (v > 0 ? 'text-emerald-500' : 'text-slate-400')}">${v > 0 ? '+' : ''}${fmtN(v)}</td>`;
+
+    // ---------- TAB 5: TỔNG QUAN THEO TỈNH (DRILL-DOWN) ----------
+    let provExpanded = new Set();
+
+    function provScope() {
+      let list = scopeFilter(getFilteredRecords(true));
+      const q = (document.getElementById('provSearch')?.value || '').trim().toLowerCase();
+      if (q) list = list.filter(r => (r.store + ' ' + r.product + ' ' + r.city).toLowerCase().includes(q));
+      return { list, q };
+    }
+
+    function toggleProvNode(key) {
+      if (provExpanded.has(key)) provExpanded.delete(key); else provExpanded.add(key);
+      renderProvinceView();
+      lucide.createIcons();
+    }
+
+    function provSetAll(open) {
+      provExpanded = new Set();
+      if (open) aggBy(provScope().list, r => r.city).forEach(p => provExpanded.add('P|' + p.key));
+      renderProvinceView();
+      lucide.createIcons();
+    }
+
+    function renderProvinceView() {
+      const body = document.getElementById('provTableBody');
+      const kpi = document.getElementById('provKpiRow');
+      if (!body || !kpi) return;
+      const { list, q } = provScope();
+      const sortKey = document.getElementById('provSort').value;
+      const provs = sortAgg(aggBy(list, r => r.city), sortKey);
+
+      const tot = list.reduce((a, r) => { a.total += r.total; a.available += r.available; a.in_transit += r.in_transit; a.ordered += r.ordered; return a; }, { total: 0, available: 0, in_transit: 0, ordered: 0 });
+      const storeCount = new Set(list.map(r => r.store)).size;
+      const bal = tot.total - tot.ordered;
+      const card = (label, val, cls) => `<div class="vip-card rounded-2xl p-3"><div class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">${label}</div><div class="text-xl font-black tabular-nums ${cls}">${val}</div></div>`;
+      kpi.innerHTML =
+        card('Số tỉnh', fmtN(provs.length), 'text-sky-500') +
+        card('Số siêu thị', fmtN(storeCount), 'text-indigo-500') +
+        card('Tổng tồn', fmtN(tot.total), 'text-slate-800 dark:text-white') +
+        card('Hàng sẵn', fmtN(tot.available), 'text-emerald-500') +
+        card('Lượng cọc', fmtN(tot.ordered), 'text-purple-500') +
+        card('Cân đối', (bal > 0 ? '+' : '') + fmtN(bal), bal < 0 ? 'text-rose-500' : 'text-emerald-500');
+
+      if (provs.length === 0) {
+        body.innerHTML = `<tr><td colspan="7" class="py-10 text-center text-slate-500">Không có dữ liệu phù hợp bộ lọc hiện tại.</td></tr>`;
+        return;
+      }
+
+      const byProv = new Map();
+      list.forEach(r => { if (!byProv.has(r.city)) byProv.set(r.city, []); byProv.get(r.city).push(r); });
+
+      let html = '';
+      provs.forEach(p => {
+        const pKey = 'P|' + p.key;
+        const pOpen = provExpanded.has(pKey) || !!q;
+        html += `<tr class="border-b vip-table-row cursor-pointer bg-sky-500/5 hover:bg-sky-500/10 font-bold" data-key="${escH(pKey)}" onclick="toggleProvNode(this.dataset.key)">
+          <td class="py-2.5 px-3"><span class="inline-flex items-center gap-2"><i data-lucide="${pOpen ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-sky-500"></i><i data-lucide="map-pin" class="w-3.5 h-3.5 text-sky-500"></i><span>${escH(p.key)}</span></span></td>
+          <td class="py-2 px-2 text-center tabular-nums">${fmtN(p.stores)}</td>
+          ${numTd(p.total)}${numTd(p.available, 'text-emerald-600 dark:text-emerald-400')}${numTd(p.in_transit, 'text-amber-600 dark:text-amber-400')}${numTd(p.ordered, 'text-purple-600 dark:text-purple-400')}${balTd(p.balance)}</tr>`;
+        if (!pOpen) return;
+
+        const stores = sortAgg(aggBy(byProv.get(p.key), r => r.store), sortKey);
+        const byStore = new Map();
+        byProv.get(p.key).forEach(r => { if (!byStore.has(r.store)) byStore.set(r.store, []); byStore.get(r.store).push(r); });
+        stores.forEach(s => {
+          const sKey = 'S|' + s.key;
+          const sOpen = provExpanded.has(sKey);
+          html += `<tr class="border-b vip-table-row cursor-pointer hover:bg-indigo-500/5 font-semibold" data-key="${escH(sKey)}" onclick="toggleProvNode(this.dataset.key)">
+            <td class="py-2 px-3 pl-9"><span class="inline-flex items-center gap-2"><i data-lucide="${sOpen ? 'chevron-down' : 'chevron-right'}" class="w-3.5 h-3.5 text-indigo-500"></i><i data-lucide="store" class="w-3.5 h-3.5 text-indigo-500"></i><span>${escH(shortStore(s.key))}</span></span></td>
+            <td class="py-2 px-2 text-center text-slate-400">–</td>
+            ${numTd(s.total)}${numTd(s.available, 'text-emerald-600 dark:text-emerald-400')}${numTd(s.in_transit, 'text-amber-600 dark:text-amber-400')}${numTd(s.ordered, 'text-purple-600 dark:text-purple-400')}${balTd(s.balance)}</tr>`;
+          if (!sOpen) return;
+
+          const models = sortAgg(aggBy(byStore.get(s.key), r => r.product), sortKey);
+          models.forEach(m => {
+            html += `<tr class="border-b vip-table-row text-slate-600 dark:text-slate-300">
+              <td class="py-1.5 px-3 pl-16"><span class="inline-flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span>${escH(shortProd(m.key))}</span></span></td>
+              <td class="py-1.5 px-2"></td>
+              ${numTd(m.total)}${numTd(m.available, 'text-emerald-600 dark:text-emerald-400')}${numTd(m.in_transit, 'text-amber-600 dark:text-amber-400')}${numTd(m.ordered, 'text-purple-600 dark:text-purple-400')}${balTd(m.balance)}</tr>`;
+          });
+        });
+      });
+      body.innerHTML = html;
+    }
+
+    // ---------- TAB 6: CHECK DATA ĐÃ UP ----------
+    let dataMeta = { source: 'EMBEDDED', fileName: 'Dữ liệu nhúng sẵn trong file HTML', loadedAt: new Date().toLocaleString('vi-VN') };
+    let cloudMeta = null;           // { lastUpdated, fileName, totalRows } đọc từ Firebase
+    let cloudMetaCheckedAt = null;
+    let cloudMetaError = null;
+    let firebaseConnected = null;   // true / false / null (chưa rõ)
+    let auditPage = 1;
+    const AUDIT_PAGE_SIZE = 100;
+
+    // ---------- ĐỒNG BỘ REALTIME TỪ FIREBASE ----------
+    let lastCloudKey = null;       // "phiên bản" dữ liệu đã nạp (version hoặc lastUpdated|rows)
+    let cloudFetching = false;
+    let cloudRetryTimer = null;
+    let cloudLastSyncAt = null;
+    const metaKey = m => m ? String(m.version || ((m.lastUpdated || '') + '|' + (m.totalRows || '') + '|' + (m.fileName || ''))) : null;
+
+    function normalizeCloudRecords(raw) {
+      const arr = Array.isArray(raw) ? raw : Object.values(raw || {});
+      return arr.filter(r => r && r.store && r.product).map(r => {
+        const p = parseProductDetails(r.product);
+        return {
+          store: String(r.store), city_code: r.city_code || extractCityCode(r.store), city: r.city || extractCityName(r.store),
+          code: String(r.code || ''), product: String(r.product), capacity: p.capacity, color: p.color,
+          total: Number(r.total) || 0, available: Number(r.available) || 0, in_transit: Number(r.in_transit) || 0,
+          ordered: Number(r.ordered) || 0, saleable: Number(r.saleable) || 0
+        };
+      });
+    }
+
+    function applyCloudData(recs, meta, key) {
+      const keepStore = document.getElementById('selectedStoreSelect')?.value;
+      allRecords = recs;
+      dataMeta = { source: 'CLOUD', fileName: (meta && meta.fileName) || 'Firebase Cloud', loadedAt: new Date().toLocaleString('vi-VN') };
+      lastCloudKey = key;
+      cloudLastSyncAt = new Date().toLocaleString('vi-VN');
+      auditPage = 1;
+      const sel = document.getElementById('auditCityFilter'); if (sel) sel.innerHTML = '';
+      populateColorDropdown();
+      initApp();
+      if (keepStore) {
+        const s = document.getElementById('selectedStoreSelect');
+        if (s && [...s.options].some(o => o.value === keepStore)) { s.value = keepStore; renderStoreDetailView(); }
+      }
+      renderCurrentMode();
+      lucide.createIcons();
+    }
+
+    function mergeCloudSnapshots() {
+      if (!snapshotsRef) return Promise.resolve();
+      return snapshotsRef.once('value').then(snap => {
+        const val = snap.val();
+        if (!val || typeof val !== 'object') return;
+        Object.keys(val).forEach(k => { if (val[k] && val[k].data) savedSnapshots[k] = val[k]; });
+        const autos = Object.keys(savedSnapshots).filter(k => k.startsWith('snap_auto_')).sort();
+        if (autos.length) activeBaselineId = autos[autos.length - 1];
+        saveSnapshotsToStorage();
+        populateSnapshotSelector();
+      }).catch(e => console.warn('Không đọc được snapshots Cloud:', e));
+    }
+
+    function fetchStockFromCloud(meta, force) {
+      if (!stockRef) return Promise.resolve();
+      const key = metaKey(meta);
+      if (!force && key && key === lastCloudKey) return Promise.resolve();
+      if (cloudFetching) return Promise.resolve();
+      cloudFetching = true;
+      updateCloudBadge('SYNCING', 'Đang tải dữ liệu mới từ Cloud...');
+      return stockRef.once('value').then(snap => {
+        const recs = normalizeCloudRecords(snap.val());
+        if (!recs.length) { updateCloudBadge('ONLINE', 'Cloud Live (chưa có dữ liệu)'); return; }
+        const isUpdate = lastCloudKey !== null;
+        applyCloudData(recs, meta, key);
+        updateCloudBadge('ONLINE', `Cloud Live · ${fmtN(recs.length)} dòng · ${(meta && meta.lastUpdated) || cloudLastSyncAt}`);
+        if (isUpdate) showToast(`🔄 Có dữ liệu mới từ Cloud (${(meta && meta.fileName) || 'file mới'}) — đã cập nhật tự động.`);
+        return mergeCloudSnapshots();
+      }).catch(err => {
+        console.error('Lỗi tải Cloud:', err);
+        cloudMetaError = err && err.message ? err.message : 'Không tải được dữ liệu';
+        updateCloudBadge('ERROR', 'Lỗi tải Cloud — đang thử lại');
+        lastCloudKey = null;
+        clearTimeout(cloudRetryTimer);
+        cloudRetryTimer = setTimeout(() => fetchStockFromCloud(meta, true), 15000);
+      }).finally(() => {
+        cloudFetching = false;
+        if (currentMode === 'AUDIT') renderAuditView();
+      });
+    }
+
+    function setupCloudWatchers() {
+      try {
+        if (!db) return;
+        db.ref('.info/connected').on('value', snap => {
+          const was = firebaseConnected;
+          firebaseConnected = snap.val() === true;
+          if (firebaseConnected && was === false) {          // vừa có mạng lại -> đối chiếu ngay
+            metaRef.once('value').then(s => fetchStockFromCloud(s.val(), false));
+          }
+          if (currentMode === 'AUDIT') renderAuditView();
+        });
+        // Lắng nghe mốc metadata (nhẹ): có phiên bản mới -> tự tải dữ liệu mới
+        metaRef.on('value', snap => {
+          cloudMeta = snap.val() || null;
+          cloudMetaError = null;
+          cloudMetaCheckedAt = new Date().toLocaleString('vi-VN');
+          if (cloudMeta) fetchStockFromCloud(cloudMeta, false);
+          if (currentMode === 'AUDIT') renderAuditView();
+        }, err => {
+          cloudMetaError = err && err.message ? err.message : 'Không đọc được metadata';
+          updateCloudBadge('ERROR', 'Lỗi quyền đọc Cloud');
+          if (currentMode === 'AUDIT') renderAuditView();
+        });
+        // Tab bị ngủ (điện thoại / chuyển tab) -> khi quay lại tự đối chiếu phiên bản
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible' && metaRef) {
+            metaRef.once('value').then(s => { cloudMeta = s.val() || null; cloudMetaCheckedAt = new Date().toLocaleString('vi-VN'); if (cloudMeta) fetchStockFromCloud(cloudMeta, false); }).catch(() => {});
+          }
+        });
+        window.addEventListener('online', () => { try { db.goOnline(); } catch (e) {} });
+      } catch (e) { console.warn('setupCloudWatchers:', e); }
+    }
+
+    function refreshCloudMeta(showMsg) {
+      if (!isCloudInitialized || !metaRef) { showToast('Firebase chưa khởi tạo (đang chạy chế độ Local).'); return; }
+      metaRef.once('value').then(snap => {
+        cloudMeta = snap.val() || null; cloudMetaError = null; cloudMetaCheckedAt = new Date().toLocaleString('vi-VN');
+        if (!cloudMeta) { if (showMsg) showToast('Cloud chưa có dữ liệu (chưa ai up file lên).'); renderAuditView(); lucide.createIcons(); return; }
+        return fetchStockFromCloud(cloudMeta, true).then(() => { if (showMsg) showToast('Đã đồng bộ lại dữ liệu từ Cloud.'); renderAuditView(); lucide.createIcons(); });
+      }).catch(err => {
+        cloudMetaError = err.message; if (showMsg) showToast('Lỗi đọc Cloud: ' + err.message);
+        renderAuditView(); lucide.createIcons();
+      });
+    }
+
+    function computeDataQuality() {
+      const list = getScopedAll();
+      const seen = new Map(); let dup = 0, neg = 0, other = 0, noCode = 0, saleDiff = 0;
+      list.forEach(r => {
+        const k = r.store + '||' + r.code + '||' + r.product;
+        seen.set(k, (seen.get(k) || 0) + 1);
+        if ([r.total, r.available, r.in_transit, r.ordered].some(v => v < 0)) neg++;
+        if (!CITY_MAP[r.city_code]) other++;
+        if (!r.code) noCode++;
+        if (r.saleable !== (r.available - r.ordered)) saleDiff++;
+      });
+      seen.forEach(v => { if (v > 1) dup += v - 1; });
+      const sumMismatch = list.filter(r => r.total !== r.available + r.in_transit).length;
+      return { rows: list.length, dup, neg, other, noCode, sumMismatch, saleDiff };
+    }
+
+    function renderAuditView() {
+      const cardsEl = document.getElementById('auditCards');
+      if (!cardsEl) return;
+      const list = getScopedAll();
+      const stores = new Set(list.map(r => r.store)).size;
+      const models = new Set(list.map(r => r.product)).size;
+      const provs = new Set(list.map(r => r.city)).size;
+
+      const srcLabel = dataMeta.source === 'EXCEL' ? 'File Excel (nạp phiên này)' : (dataMeta.source === 'CLOUD' ? 'Tự động tải từ Firebase Cloud (realtime)' : '⚠ Dữ liệu nhúng sẵn trong HTML — có thể cũ, đang chờ Cloud');
+      const fbOk = firebaseConnected === true;
+      const fbText = !isCloudInitialized ? 'Chưa khởi tạo (Local)' : (firebaseConnected === null ? 'Đang kiểm tra...' : (fbOk ? 'Đã kết nối Realtime' : 'Mất kết nối'));
+      const fbCls = !isCloudInitialized ? 'text-rose-500' : (firebaseConnected === null ? 'text-amber-500' : (fbOk ? 'text-emerald-500' : 'text-rose-500'));
+      const fbDot = !isCloudInitialized ? 'bg-rose-500' : (firebaseConnected === null ? 'bg-amber-500' : (fbOk ? 'bg-emerald-500' : 'bg-rose-500'));
+
+      let syncNote = '';
+      if (cloudMeta && cloudMeta.totalRows != null) {
+        syncNote = cloudMeta.totalRows === allRecords.length
+          ? `<span class="text-emerald-500 font-bold">✔ Số dòng Local khớp Cloud (${fmtN(allRecords.length)})</span>`
+          : `<span class="text-amber-500 font-bold">⚠ Local ${fmtN(allRecords.length)} dòng ≠ Cloud ${fmtN(cloudMeta.totalRows)} dòng</span>`;
+      }
+
+      const box = (icon, title, main, sub, extra = '') => `<div class="vip-card rounded-2xl p-4 space-y-1.5">
+        <div class="flex items-center gap-2 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400"><i data-lucide="${icon}" class="w-4 h-4"></i><span>${title}</span></div>
+        <div class="text-sm font-black break-words">${main}</div>
+        <div class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">${sub}</div>${extra}</div>`;
+
+      cardsEl.innerHTML =
+        box('file-spreadsheet', 'Nguồn file đang nạp', escH(dataMeta.fileName), `${srcLabel}<br>Nạp lúc: ${escH(dataMeta.loadedAt)}`) +
+        box('clock', 'Cập nhật gần nhất (Cloud)',
+          cloudMeta ? escH(cloudMeta.lastUpdated || '—') : '<span class="text-slate-400">Chưa có mốc trên Cloud</span>',
+          cloudMeta ? `File up: ${escH(cloudMeta.fileName || '—')}<br>${fmtN(cloudMeta.totalRows)} dòng` : 'Chưa ai up file lên Cloud hoặc chưa đọc được metadata.',
+          syncNote ? `<div class="text-[11px]">${syncNote}</div>` : '') +
+        box('cloud', 'Firebase Realtime', `<span class="inline-flex items-center gap-2 ${fbCls}"><span class="w-2 h-2 rounded-full ${fbDot}"></span>${fbText}</span>`,
+          cloudMetaError ? `<span class="text-rose-500">Lỗi: ${escH(cloudMetaError)}</span>` : (cloudMetaCheckedAt ? `Kiểm tra lúc: ${escH(cloudMetaCheckedAt)}` : 'Chưa kiểm tra metadata')) +
+        box('layers', 'Quy mô dữ liệu', `${fmtN(list.length)} bản ghi`, `${fmtN(stores)} siêu thị · ${fmtN(models)} model · ${fmtN(provs)} tỉnh`);
+
+      const dq = computeDataQuality();
+      const chip = (ok, text) => `<span class="text-[11px] font-bold px-3 py-1.5 rounded-xl ${ok ? 'badge-glow-green' : 'badge-glow-red'}">${ok ? '✔' : '⚠'} ${text}</span>`;
+      document.getElementById('auditQuality').innerHTML =
+        chip(dq.rows > 0, `${fmtN(dq.rows)} bản ghi`) +
+        chip(dq.dup === 0, `Dòng trùng khóa: ${fmtN(dq.dup)}`) +
+        chip(dq.neg === 0, `Giá trị âm (Tổng/Sẵn/Về/Cọc): ${fmtN(dq.neg)}`) +
+        chip(dq.sumMismatch === 0, `Tổng ≠ Sẵn + Về: ${fmtN(dq.sumMismatch)}`) +
+        chip(dq.other === 0, `Mã tỉnh lạ: ${fmtN(dq.other)}`) +
+        chip(dq.noCode === 0, `Thiếu mã SP: ${fmtN(dq.noCode)}`) +
+        `<span class="text-[11px] font-bold px-3 py-1.5 rounded-xl badge-glow-blue" title="Cột 'Có thể bán' của BI khác (Sẵn − Cọc) — chỉ để tham khảo">ℹ Có thể bán lệch (Sẵn − Cọc): ${fmtN(dq.saleDiff)}</span>`;
+
+      const sel = document.getElementById('auditCityFilter');
+      if (sel && sel.options.length <= 1) {
+        const cities = [...new Set(list.map(r => r.city))].sort((a, b) => a.localeCompare(b, 'vi'));
+        sel.innerHTML = `<option value="ALL">Tất cả tỉnh</option>` + cities.map(c => `<option value="${escH(c)}">${escH(c)}</option>`).join('');
+      }
+      renderAuditRaw();
+    }
+
+    function auditFiltered() {
+      let list = getScopedAll();
+      const city = document.getElementById('auditCityFilter')?.value || 'ALL';
+      const q = (document.getElementById('auditSearch')?.value || '').trim().toLowerCase();
+      if (city !== 'ALL') list = list.filter(r => r.city === city);
+      if (q) list = list.filter(r => (r.store + ' ' + r.code + ' ' + r.product).toLowerCase().includes(q));
+      return list;
+    }
+
+    function renderAuditRaw() {
+      const body = document.getElementById('auditRawBody');
+      if (!body) return;
+      const list = auditFiltered();
+      const pages = Math.max(1, Math.ceil(list.length / AUDIT_PAGE_SIZE));
+      if (auditPage > pages) auditPage = pages;
+      if (auditPage < 1) auditPage = 1;
+      const start = (auditPage - 1) * AUDIT_PAGE_SIZE;
+      const slice = list.slice(start, start + AUDIT_PAGE_SIZE);
+      document.getElementById('auditRawCount').innerText = fmtN(list.length) + ' dòng';
+      body.innerHTML = slice.length ? slice.map((r, i) => `<tr class="border-b vip-table-row">
+        <td class="py-1.5 px-3 text-slate-400 tabular-nums">${start + i + 1}</td>
+        <td class="py-1.5 px-3">${escH(shortStore(r.store))}</td>
+        <td class="py-1.5 px-2">${escH(r.city)}</td>
+        <td class="py-1.5 px-2 font-mono text-[11px] text-slate-500">${escH(r.code)}</td>
+        <td class="py-1.5 px-3">${escH(shortProd(r.product))}</td>
+        ${numTd(r.total)}${numTd(r.available, 'text-emerald-600 dark:text-emerald-400')}${numTd(r.in_transit, 'text-amber-600 dark:text-amber-400')}${numTd(r.ordered, 'text-purple-600 dark:text-purple-400')}
+        <td class="py-1.5 px-3 text-right tabular-nums font-bold ${r.saleable < 0 ? 'text-rose-500' : (r.saleable > 0 ? 'text-emerald-500' : 'text-slate-400')}">${fmtN(r.saleable)}</td></tr>`).join('')
+        : `<tr><td colspan="10" class="py-10 text-center text-slate-500">Không có bản ghi phù hợp.</td></tr>`;
+      const btn = 'px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed';
+      document.getElementById('auditPager').innerHTML = `<span>Hiển thị ${list.length ? fmtN(start + 1) : 0}–${fmtN(Math.min(start + AUDIT_PAGE_SIZE, list.length))} / ${fmtN(list.length)} dòng</span>
+        <span class="flex items-center gap-2"><button class="${btn}" ${auditPage <= 1 ? 'disabled' : ''} onclick="auditPage--;renderAuditRaw()">‹ Trước</button><span>Trang ${auditPage}/${pages}</span><button class="${btn}" ${auditPage >= pages ? 'disabled' : ''} onclick="auditPage++;renderAuditRaw()">Sau ›</button></span>`;
+    }
+
+    function exportRawRecordsExcel() {
+      const list = auditFiltered();
+      if (!list.length) { showToast('Không có dữ liệu để xuất.'); return; }
+      const rows = list.map(r => ({ 'Tên siêu thị': r.store, 'Tỉnh': r.city, 'Mã sản phẩm': r.code, 'Tên sản phẩm': r.product, 'Số lượng': r.total, 'Hàng sẵn': r.available, 'Đang về': r.in_transit, 'Đã đặt (cọc)': r.ordered, 'Có thể bán': r.saleable }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'RawData');
+      XLSX.writeFile(wb, `Raw_Data_Ton_Kho_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      showToast(`Đã xuất ${fmtN(rows.length)} bản ghi thô.`);
+    }
+
+    // ---------- TRỢ LÝ: 3 NHÓM x 10 CÂU HỎI MẪU ----------
+    const cS = t => `<span class="text-emerald-500 font-bold">${t}</span>`;
+    const cR = t => `<span class="text-rose-500 font-bold">${t}</span>`;
+    const cA = t => `<span class="text-amber-500 font-bold">${t}</span>`;
+    const cP = t => `<span class="text-purple-500 font-bold">${t}</span>`;
+    const bal = v => (v < 0 ? cR(fmtN(v)) : cS('+' + fmtN(v)));
+    const botTop = (title, arr, fmt, empty) => arr.length ? `${title}<br>` + arr.map((x, i) => `${i + 1}. ${fmt(x)}`).join('<br>') : (empty || 'Không có dữ liệu phù hợp.');
+    function chatTotals(list) { return list.reduce((a, r) => { a.total += r.total; a.available += r.available; a.in_transit += r.in_transit; a.ordered += r.ordered; return a; }, { total: 0, available: 0, in_transit: 0, ordered: 0 }); }
+    const scopeTag = () => isTZScope() ? ' <em class="text-slate-400">(phạm vi Đà Nẵng)</em>' : '';
+
+    function chatSnapshotDelta() {
+      const snap = savedSnapshots[activeBaselineId];
+      if (!snap || !snap.data) return null;
+      const base = scopeFilter(snap.data);
+      const cur = getScopedAll();
+      const bm = new Map(base.map(r => [r.store + '||' + r.product, r]));
+      const cm = new Map(cur.map(r => [r.store + '||' + r.product, r]));
+      const z = { ordered: 0, available: 0, in_transit: 0, total: 0, product: '' };
+      let delivered = 0, availD = 0, transitD = 0, totalD = 0; const byProd = {};
+      new Set([...bm.keys(), ...cm.keys()]).forEach(k => {
+        const c = cm.get(k) || z, b = bm.get(k) || z;
+        delivered += Math.max(0, b.ordered - c.ordered);
+        availD += c.available - b.available; transitD += c.in_transit - b.in_transit; totalD += c.total - b.total;
+        const p = (cm.get(k) || bm.get(k)).product;
+        byProd[p] = (byProd[p] || 0) + (c.total - b.total);
+      });
+      return { snap, delivered, availD, transitD, totalD, byProd };
+    }
+    const noSnapMsg = () => 'Chưa có mốc so sánh (Snapshot). 💡 Sang tab <strong>4. So Sánh & Cọc Đã Xuất</strong> và bấm <em>Lưu Mốc Này</em> trước khi nạp file mới.';
+
+    function provinceSummary(name) {
+      const list = getScopedAll().filter(r => r.city === name);
+      if (!list.length) return `Không có dữ liệu cho <strong>${escH(name)}</strong>${scopeTag()}.`;
+      const t = chatTotals(list);
+      const stores = aggBy(list, r => r.store);
+      const worst = stores.slice().sort((a, b) => a.balance - b.balance).filter(s => s.balance < 0).slice(0, 3);
+      const topAvail = aggBy(list, r => r.product).sort((a, b) => b.available - a.available).filter(m => m.available > 0).slice(0, 3);
+      let res = `🗺️ <strong>${escH(name)}</strong>: ${fmtN(stores.length)} siêu thị<br>• Tổng tồn ${fmtN(t.total)} | Sẵn ${cS(fmtN(t.available))} | Đang về ${cA(fmtN(t.in_transit))} | Cọc ${cP(fmtN(t.ordered))}<br>• Cân đối (Tồn − Cọc): ${bal(t.total - t.ordered)}`;
+      if (worst.length) res += `<br>• Shop thiếu nhất: ` + worst.map(s => `${escH(shortStore(s.key))} (${fmtN(s.balance)})`).join('; ');
+      if (topAvail.length) res += `<br>• Model sẵn nhiều: ` + topAvail.map(m => `${escH(shortProd(m.key))} (${fmtN(m.available)})`).join('; ');
+      return res;
+    }
+
+    function transferSuggestions() {
+      const list = getScopedAll();
+      const models = aggBy(list, r => r.product).filter(m => m.balance < 0).sort((a, b) => a.balance - b.balance).slice(0, 6);
+      const lines = [];
+      models.forEach(m => {
+        const rows = list.filter(r => r.product === m.key);
+        const donors = rows.filter(r => r.saleable > 0).map(r => ({ s: r.store, q: r.saleable })).sort((a, b) => b.q - a.q);
+        const needs = rows.filter(r => r.ordered - r.available > 0).map(r => ({ s: r.store, q: r.ordered - r.available })).sort((a, b) => b.q - a.q);
+        needs.slice(0, 3).forEach(n => {
+          let left = n.q;
+          donors.forEach(d => {
+            if (left <= 0 || d.q <= 0 || lines.length >= 8) return;
+            const mv = Math.min(left, d.q); d.q -= mv; left -= mv;
+            lines.push(`<strong>${escH(shortProd(m.key))}</strong>: ${escH(shortStore(d.s))} &rarr; ${escH(shortStore(n.s))} <strong>${mv} máy</strong>`);
+          });
+        });
+      });
+      if (lines.length) return `🔁 <strong>Gợi ý điều chuyển (từ shop dư bán ngay sang shop thiếu hàng sẵn cho cọc):</strong><br>` + lines.join('<br>');
+      if (!models.length) return 'Hiện không có model nào âm tồn nên chưa cần điều chuyển.';
+      return `🔁 Chưa có cặp điều chuyển khả thi: các model thiếu nặng nhất không còn <strong>shop nào dư hàng bán ngay</strong> để chia sẻ.<br>` +
+        models.slice(0, 4).map(m => `• <strong>${escH(shortProd(m.key))}</strong>: thiếu ${cR(fmtN(Math.abs(m.balance)))} — đang về ${cA(fmtN(m.in_transit))}`).join('<br>') +
+        `<br><em class="text-slate-400">Cần chờ hàng về hoặc xin phân bổ thêm từ kho.</em>`;
+    }
+
+    const CHAT_GROUPS = [
+      { id: 'stock', title: '📦 Tồn kho & hàng sẵn', cls: 'indigo', items: [
+        { q: 'Tổng tồn kho, hàng sẵn và hàng đang về toàn vùng là bao nhiêu?', fn: () => { const t = chatTotals(getScopedAll()); return `📦 <strong>Tổng quan tồn kho</strong>${scopeTag()}:<br>• Tổng tồn: <strong>${fmtN(t.total)}</strong> máy<br>• Hàng sẵn: ${cS(fmtN(t.available))}<br>• Đang về: ${cA(fmtN(t.in_transit))}<br>• Khách cọc: ${cP(fmtN(t.ordered))}<br>• Cân đối (Tồn − Cọc): ${bal(t.total - t.ordered)}`; } },
+        { q: 'Top 5 model còn hàng sẵn nhiều nhất?', fn: () => botTop('🏆 <strong>Top 5 model hàng sẵn nhiều nhất:</strong>', aggBy(getScopedAll(), r => r.product).sort((a, b) => b.available - a.available).filter(m => m.available > 0).slice(0, 5), m => `<strong>${escH(shortProd(m.key))}</strong>: ${cS(fmtN(m.available))} sẵn (cọc ${fmtN(m.ordered)})`) },
+        { q: 'Top 5 siêu thị có nhiều hàng sẵn nhất?', fn: () => botTop('🏪 <strong>Top 5 siêu thị hàng sẵn nhiều nhất:</strong>', aggBy(getScopedAll(), r => r.store).sort((a, b) => b.available - a.available).slice(0, 5), s => `<strong>${escH(shortStore(s.key))}</strong>: ${cS(fmtN(s.available))} sẵn (đang về ${fmtN(s.in_transit)})`) },
+        { q: 'Model nào đã hết hàng sẵn toàn hệ thống?', fn: () => { const arr = aggBy(getScopedAll(), r => r.product).filter(m => m.available === 0); return arr.length ? `🚫 <strong>${arr.length} model hết hàng sẵn</strong> (chỉ còn hàng đang về hoặc không còn):<br>` + arr.slice(0, 8).map(m => `• ${escH(shortProd(m.key))} — đang về ${fmtN(m.in_transit)}, cọc ${fmtN(m.ordered)}`).join('<br>') + (arr.length > 8 ? `<br>… và ${arr.length - 8} model khác` : '') : 'Tất cả model đều còn ít nhất 1 máy sẵn.'; } },
+        { q: 'iPhone 18 Pro Max còn sẵn ở siêu thị nào?', fn: () => botTop('📍 <strong>iPhone 18 Pro Max — siêu thị còn sẵn nhiều nhất:</strong>', aggBy(getScopedAll().filter(r => r.product.toLowerCase().includes('iphone 18 pro max')), r => r.store).filter(s => s.available > 0).sort((a, b) => b.available - a.available).slice(0, 5), s => `<strong>${escH(shortStore(s.key))}</strong>: ${cS(fmtN(s.available))} máy sẵn`, 'Hiện không siêu thị nào còn sẵn iPhone 18 Pro Max.') },
+        { q: 'Màu nào đang còn nhiều hàng sẵn nhất?', fn: () => botTop('🎨 <strong>Màu còn nhiều hàng sẵn nhất:</strong>', aggBy(getScopedAll(), r => r.color).sort((a, b) => b.available - a.available).slice(0, 6), c => `<strong>${escH(c.key)}</strong>: ${cS(fmtN(c.available))} sẵn | cọc ${fmtN(c.ordered)}`) },
+        { q: 'Dung lượng nào tồn nhiều nhất?', fn: () => botTop('💾 <strong>Tồn kho theo dung lượng:</strong>', aggBy(getScopedAll().filter(r => r.capacity), r => r.capacity).sort((a, b) => b.total - a.total), c => `<strong>${escH(c.key)}</strong>: tổng ${fmtN(c.total)} | sẵn ${cS(fmtN(c.available))} | cọc ${fmtN(c.ordered)}`) },
+        { q: 'Top 5 model có nhiều hàng đang về nhất?', fn: () => botTop('🚚 <strong>Top 5 model hàng đang về nhiều nhất:</strong>', aggBy(getScopedAll(), r => r.product).sort((a, b) => b.in_transit - a.in_transit).filter(m => m.in_transit > 0).slice(0, 5), m => `<strong>${escH(shortProd(m.key))}</strong>: ${cA(fmtN(m.in_transit))} đang về (cọc ${fmtN(m.ordered)})`, 'Hiện không có hàng đang về.') },
+        { q: 'Siêu thị nào chưa có hàng sẵn nào?', fn: () => { const arr = aggBy(getScopedAll(), r => r.store).filter(s => s.available === 0); return arr.length ? `⚠️ <strong>${arr.length} siêu thị chưa có máy sẵn:</strong><br>` + arr.slice(0, 8).map(s => `• ${escH(shortStore(s.key))} (đang về ${fmtN(s.in_transit)}, cọc ${fmtN(s.ordered)})`).join('<br>') + (arr.length > 8 ? `<br>… và ${arr.length - 8} siêu thị khác` : '') : 'Mọi siêu thị đều có ít nhất 1 máy sẵn.'; } },
+        { q: 'Dữ liệu có bao nhiêu model, màu và siêu thị?', fn: () => { const l = getScopedAll(); return `🔢 Dữ liệu hiện có${scopeTag()}: <strong>${fmtN(new Set(l.map(r => r.product)).size)}</strong> model (SKU), <strong>${fmtN(new Set(l.map(r => r.color)).size)}</strong> màu, <strong>${fmtN(new Set(l.map(r => r.store)).size)}</strong> siêu thị, <strong>${fmtN(new Set(l.map(r => r.city)).size)}</strong> tỉnh — tổng <strong>${fmtN(l.length)}</strong> bản ghi.`; } }
+      ] },
+      { id: 'deposit', title: '🎯 Cọc & thiếu / dư', cls: 'rose', items: [
+        { q: 'Tổng số cọc khách đang chờ là bao nhiêu?', fn: () => { const l = getScopedAll(); const t = chatTotals(l); const byP = aggBy(l, r => r.city).sort((a, b) => b.ordered - a.ordered).slice(0, 3); return `🎯 Tổng khách cọc đang chờ${scopeTag()}: ${cP(fmtN(t.ordered) + ' máy')}<br>Tỉnh nhiều cọc nhất: ` + byP.map(p => `${escH(p.key)} (${fmtN(p.ordered)})`).join(', '); } },
+        { q: 'Top 5 model nợ cọc nặng nhất?', fn: () => botTop('🚨 <strong>Top 5 model nợ cọc nặng nhất</strong> (Tồn − Cọc):', aggBy(getScopedAll(), r => r.product).filter(m => m.balance < 0).sort((a, b) => a.balance - b.balance).slice(0, 5), m => `<strong>${escH(shortProd(m.key))}</strong>: thiếu ${cR(fmtN(Math.abs(m.balance)))} (cọc ${fmtN(m.ordered)} | tồn ${fmtN(m.total)})`, 'Không có model nào âm tồn / nợ cọc!') },
+        { q: 'Top 5 siêu thị nợ cọc nặng nhất?', fn: () => botTop('🏪 <strong>Top 5 siêu thị nợ cọc nặng nhất:</strong>', aggBy(getScopedAll(), r => r.store).filter(s => s.balance < 0).sort((a, b) => a.balance - b.balance).slice(0, 5), s => `<strong>${escH(shortStore(s.key))}</strong>: thiếu ${cR(fmtN(Math.abs(s.balance)))} (cọc ${fmtN(s.ordered)} | tồn ${fmtN(s.total)})`, 'Không có siêu thị nào nợ cọc!') },
+        { q: 'Top 5 siêu thị dư hàng bán ngay nhiều nhất?', fn: () => botTop('💚 <strong>Top 5 siêu thị dư hàng bán ngay</strong> (cột Có thể bán):', aggBy(getScopedAll(), r => r.store).filter(s => s.saleable > 0).sort((a, b) => b.saleable - a.saleable).slice(0, 5), s => `<strong>${escH(shortStore(s.key))}</strong>: ${cS('+' + fmtN(s.saleable))} máy bán ngay`) },
+        { q: 'Model nào đang dư hàng bán ngay nhiều nhất?', fn: () => botTop('💚 <strong>Top 5 model dư hàng bán ngay:</strong>', aggBy(getScopedAll(), r => r.product).filter(m => m.saleable > 0).sort((a, b) => b.saleable - a.saleable).slice(0, 5), m => `<strong>${escH(shortProd(m.key))}</strong>: ${cS('+' + fmtN(m.saleable))} (sẵn ${fmtN(m.available)}, cọc ${fmtN(m.ordered)})`) },
+        { q: 'Có bao nhiêu dòng model–siêu thị đang bị âm tồn?', fn: () => { const l = getScopedAll(); const neg = l.filter(r => r.total - r.ordered < 0); return `📉 Có ${cR(fmtN(neg.length))} / ${fmtN(l.length)} dòng model–siêu thị đang âm (Tồn &lt; Cọc), thuộc <strong>${fmtN(new Set(neg.map(r => r.store)).size)}</strong> siêu thị, tổng thiếu <strong>${fmtN(neg.reduce((a, r) => a + (r.ordered - r.total), 0))}</strong> máy.`; } },
+        { q: 'Hàng đang về có đủ bù cọc chưa có hàng sẵn không?', fn: () => { let need = 0, cover = 0; getScopedAll().forEach(r => { const n = Math.max(0, r.ordered - r.available); need += n; cover += Math.min(n, r.in_transit); }); return `🚚 Cọc chưa có hàng sẵn: <strong>${fmtN(need)}</strong> máy<br>• Hàng đang về bù được: ${cA(fmtN(cover))}<br>• Còn thiếu thật sự: ${need - cover > 0 ? cR(fmtN(need - cover)) : cS('0')} máy<br><em class="text-slate-400">(tính theo từng dòng model–siêu thị)</em>`; } },
+        { q: 'Siêu thị nào cọc nhiều nhưng hàng sẵn bằng 0?', fn: () => botTop('⏳ <strong>Siêu thị có cọc nhưng chưa có máy sẵn:</strong>', aggBy(getScopedAll(), r => r.store).filter(s => s.ordered > 0 && s.available === 0).sort((a, b) => b.ordered - a.ordered).slice(0, 6), s => `<strong>${escH(shortStore(s.key))}</strong>: cọc ${cP(fmtN(s.ordered))}, đang về ${fmtN(s.in_transit)}`, 'Không có siêu thị nào rơi vào trường hợp này.') },
+        { q: 'Model nào đang bị khách cọc nhiều nhất?', fn: () => botTop('📝 <strong>Top 5 model nhiều cọc nhất:</strong>', aggBy(getScopedAll(), r => r.product).sort((a, b) => b.ordered - a.ordered).filter(m => m.ordered > 0).slice(0, 5), m => `<strong>${escH(shortProd(m.key))}</strong>: cọc ${cP(fmtN(m.ordered))} | sẵn ${fmtN(m.available)} | về ${fmtN(m.in_transit)}`, 'Hiện chưa có cọc nào.') },
+        { q: 'Gợi ý điều chuyển hàng từ shop dư sang shop thiếu?', fn: transferSuggestions }
+      ] },
+      { id: 'region', title: '🗺️ Tỉnh, biến động & dữ liệu', cls: 'sky', items: [
+        { q: 'Tỉnh nào đang có tồn kho nhiều nhất?', fn: () => botTop('🗺️ <strong>Tồn kho theo tỉnh:</strong>', aggBy(getScopedAll(), r => r.city).sort((a, b) => b.total - a.total), p => `<strong>${escH(p.key)}</strong>: tổng ${fmtN(p.total)} | sẵn ${cS(fmtN(p.available))} | ${fmtN(p.stores)} siêu thị`) },
+        { q: 'Tỉnh nào đang nợ cọc nặng nhất?', fn: () => botTop('🚨 <strong>Tỉnh nợ cọc nặng nhất:</strong>', aggBy(getScopedAll(), r => r.city).filter(p => p.balance < 0).sort((a, b) => a.balance - b.balance).slice(0, 5), p => `<strong>${escH(p.key)}</strong>: thiếu ${cR(fmtN(Math.abs(p.balance)))} (cọc ${fmtN(p.ordered)} | tồn ${fmtN(p.total)})`, 'Không có tỉnh nào âm tồn.') },
+        { q: 'Đà Nẵng đang có bao nhiêu hàng sẵn và cọc?', fn: () => provinceSummary('Đà Nẵng') },
+        { q: 'Mỗi tỉnh có bao nhiêu siêu thị?', fn: () => botTop('🏬 <strong>Số siêu thị theo tỉnh:</strong>', aggBy(getScopedAll(), r => r.city).sort((a, b) => b.stores - a.stores), p => `<strong>${escH(p.key)}</strong>: ${fmtN(p.stores)} siêu thị`) },
+        { q: 'Đã xuất bao nhiêu cọc so với mốc trước?', fn: () => { const d = chatSnapshotDelta(); return d ? `📊 So với mốc <em>${escH(d.snap.time || d.snap.name || 'cũ')}</em>${scopeTag()}:<br>• Cọc đã xuất trả khách: ${cS(fmtN(d.delivered) + ' máy')}<br>• Hàng sẵn thay đổi: <strong>${d.availD >= 0 ? '+' : ''}${fmtN(d.availD)}</strong> | Đang về: <strong>${d.transitD >= 0 ? '+' : ''}${fmtN(d.transitD)}</strong>` : noSnapMsg(); } },
+        { q: 'Tổng tồn kho đã thay đổi bao nhiêu so với mốc trước?', fn: () => { const d = chatSnapshotDelta(); return d ? `📈 Tổng tồn so với mốc <em>${escH(d.snap.time || 'cũ')}</em>: ${d.totalD >= 0 ? cS('+' + fmtN(d.totalD)) : cR(fmtN(d.totalD))} máy.` : noSnapMsg(); } },
+        { q: 'Model nào giảm tồn mạnh nhất so với mốc trước?', fn: () => { const d = chatSnapshotDelta(); if (!d) return noSnapMsg(); const arr = Object.entries(d.byProd).filter(e => e[1] < 0).sort((a, b) => a[1] - b[1]).slice(0, 5); return botTop(`📉 <strong>Model giảm tồn mạnh nhất so với mốc ${escH(d.snap.time || 'cũ')}:</strong>`, arr, e => `<strong>${escH(shortProd(e[0]))}</strong>: ${cR(fmtN(e[1]))} máy`, 'Không có model nào giảm tồn so với mốc.'); } },
+        { q: 'Dữ liệu được cập nhật lúc nào, từ file nào?', fn: () => `🕒 <strong>Nguồn đang nạp:</strong> ${escH(dataMeta.fileName)} (nạp lúc ${escH(dataMeta.loadedAt)})<br><strong>Cloud:</strong> ` + (cloudMeta ? `${escH(cloudMeta.fileName || '—')} — cập nhật ${escH(cloudMeta.lastUpdated || '—')} (${fmtN(cloudMeta.totalRows)} dòng)` : 'chưa có mốc trên Cloud') + `<br>Xem chi tiết ở tab <strong>6. Check Data Đã Up</strong>.` },
+        { q: 'Dữ liệu có dòng trùng hoặc bất thường không?', fn: () => { const d = computeDataQuality(); const issues = d.dup + d.neg + d.sumMismatch + d.other + d.noCode; return `🔎 Kiểm tra ${fmtN(d.rows)} bản ghi: ` + (issues === 0 ? cS('không có lỗi') : cR(fmtN(issues) + ' điểm bất thường')) + `<br>• Trùng khóa: ${d.dup} | Giá trị âm: ${d.neg} | Tổng ≠ Sẵn+Về: ${d.sumMismatch} | Mã tỉnh lạ: ${d.other} | Thiếu mã SP: ${d.noCode}<br>• ℹ Có thể bán lệch (Sẵn − Cọc): ${d.saleDiff} dòng (tham khảo)`; } },
+        { q: 'Firebase Cloud đang kết nối và đồng bộ chưa?', fn: () => { if (!isCloudInitialized) return `☁️ Firebase ${cR('chưa khởi tạo')} — đang chạy chế độ Local.`; const st = firebaseConnected === null ? cA('đang kiểm tra') : (firebaseConnected ? cS('đã kết nối Realtime') : cR('mất kết nối')); const sync = cloudMeta && cloudMeta.totalRows != null ? (cloudMeta.totalRows === allRecords.length ? cS('số dòng khớp Local') : cA(`Local ${fmtN(allRecords.length)} ≠ Cloud ${fmtN(cloudMeta.totalRows)} dòng`)) : 'chưa có metadata trên Cloud'; return `☁️ Firebase: ${st}<br>Đồng bộ: ${sync}`; } }
+      ] }
+    ];
+
+    let activeChatGroup = 0;
+    function renderChatGroups() {
+      const tabs = document.getElementById('chatGroupTabs');
+      const list = document.getElementById('chatQuestionList');
+      if (!tabs || !list) return;
+      const on = { indigo: 'bg-indigo-600 text-white border-indigo-600', rose: 'bg-rose-600 text-white border-rose-600', sky: 'bg-sky-600 text-white border-sky-600' };
+      const off = 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+      tabs.innerHTML = CHAT_GROUPS.map((g, i) => `<button onclick="selectChatGroup(${i})" class="flex-1 px-2 py-1.5 rounded-lg border font-bold leading-tight ${i === activeChatGroup ? on[g.cls] : off}">${g.title}</button>`).join('');
+      list.innerHTML = CHAT_GROUPS[activeChatGroup].items.map((it, j) => `<button onclick="pickChatQuestion(${activeChatGroup},${j})" class="text-left px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 hover:bg-indigo-500/10 text-slate-700 dark:text-slate-200 font-medium leading-snug"><span class="text-slate-400 font-bold mr-1">${j + 1}.</span>${escH(it.q)}</button>`).join('');
+    }
+    function selectChatGroup(i) { activeChatGroup = i; renderChatGroups(); }
+    function pickChatQuestion(g, j) {
+      const it = CHAT_GROUPS[g].items[j];
+      document.getElementById('chatInputText').value = it.q;   // tự động điền
+      submitChatMessage();                                      // và phản hồi ngay
+    }
+    window.addEventListener('DOMContentLoaded', renderChatGroups);
+
+    // Bộ định tuyến câu hỏi: khớp câu mẫu -> tên tỉnh -> logic cũ
+    function processQueryAndReply(rawQ) {
+      const norm = s => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
+      const q = norm(rawQ);
+      if (!allRecords || allRecords.length === 0) { legacyProcessQueryAndReply(rawQ); return; }
+
+      for (const g of CHAT_GROUPS) {
+        for (const it of g.items) {
+          if (norm(it.q) === q) {
+            try { appendChatMsg('BOT', it.fn()); }
+            catch (e) { console.error(e); appendChatMsg('BOT', 'Có lỗi khi tổng hợp câu trả lời, bạn thử lại giúp mình nhé.'); }
+            return;
+          }
+        }
+      }
+
+      const aliases = Object.assign({}, ...Object.values(CITY_MAP).map(n => ({ [n.toLowerCase()]: n })), { 'huế': 'Thừa Thiên Huế', 'hue': 'Thừa Thiên Huế', 'da nang': 'Đà Nẵng' });
+      const hit = Object.keys(aliases).sort((a, b) => b.length - a.length).find(k => q.includes(k));
+      if (hit) {
+        const rest = q.replace(hit, ' ').replace(/(tỉnh|thành phố|tp\.?|tồn|kho|hàng|bao nhiêu|có|đang|tổng quan|thế nào|ra sao|như thế nào|\?)/g, ' ').trim();
+        if (rest.split(/\s+/).filter(w => w.length > 1).length === 0) { appendChatMsg('BOT', provinceSummary(aliases[hit])); return; }
+      }
+      legacyProcessQueryAndReply(rawQ);
+    }
+
   </script>
 
   <!-- ================= CHATBOX TRA CỨU TỒN KHO THÔNG MINH ================= -->
@@ -3284,7 +3954,7 @@
       <i data-lucide="x" id="chatIconClose" class="w-7 h-7 hidden"></i>
     </button>
 
-    <div id="quickChatBox" class="hidden absolute bottom-16 right-0 w-[92vw] sm:w-[430px] max-h-[580px] h-[530px] vip-card rounded-3xl border border-indigo-500/30 shadow-2xl flex flex-col overflow-hidden bg-white dark:bg-slate-950">
+    <div id="quickChatBox" class="hidden absolute bottom-16 right-0 w-[92vw] sm:w-[430px] max-h-[90vh] h-[640px] vip-card rounded-3xl border border-indigo-500/30 shadow-2xl flex flex-col overflow-hidden bg-white dark:bg-slate-950">
       <div class="p-3.5 bg-gradient-to-r from-indigo-600 to-purple-700 text-white flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
@@ -3292,7 +3962,7 @@
           </div>
           <div>
             <h3 class="text-xs font-black tracking-wide uppercase">TRỢ LÝ TỒN KHO & ĐIỀU PHỐI</h3>
-            <p class="text-[10px] text-indigo-100">Hỏi nhanh máy sẵn ở đâu, nợ cọc & biến động</p>
+            <p class="text-[10px] text-indigo-100">Chọn nhóm &amp; bấm câu hỏi mẫu — trả lời ngay bằng dữ liệu thật</p>
           </div>
         </div>
         <button onclick="toggleQuickChat()" class="text-white/80 hover:text-white p-1 rounded-lg">
@@ -3318,10 +3988,9 @@
         </div>
       </div>
 
-      <div class="p-2 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50 flex gap-1.5 overflow-x-auto text-[10px]">
-        <button onclick="sendQuickPrompt('18 pro max burgundy có sẵn ở đâu?')" class="whitespace-nowrap px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">Burgundy sẵn ở đâu?</button>
-        <button onclick="sendQuickPrompt('Những model nào thiếu cọc nhiều nhất?')" class="whitespace-nowrap px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20">Model thiếu cọc nhất?</button>
-        <button onclick="sendQuickPrompt('Đã xuất bao nhiêu cọc so với mốc trước?')" class="whitespace-nowrap px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/20">Số cọc đã xuất?</button>
+      <div class="border-t border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50 text-[10px]">
+        <div id="chatGroupTabs" class="flex gap-1 p-2 pb-1"></div>
+        <div id="chatQuestionList" class="px-2 pb-2 max-h-[168px] overflow-y-auto grid grid-cols-1 gap-1"></div>
       </div>
 
       <div class="p-2.5 border-t border-slate-200 dark:border-slate-800 flex gap-2 items-center bg-white dark:bg-slate-950">
